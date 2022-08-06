@@ -1,0 +1,106 @@
+---
+title: "Week 3 Peer Review"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+
+######DO NOT MODIFY. This will load required packages and data.
+
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+
+cces <- drop_na(read_csv(url("https://www.dropbox.com/s/ahmt12y39unicd2/cces_sample_coursera.csv?raw=1")))
+
+cel <- drop_na(read_csv(url("https://www.dropbox.com/s/4ebgnkdhhxo5rac/cel_volden_wiseman%20_coursera.csv?raw=1")))
+
+```
+
+Following the directions on the Coursera assignment page, you will make four original visualizations. Note that the data for the CCES and CEL data are imported in code in the R Markdown file.
+
+### Put your name here: Michelle Lin
+
+## Exercise 1
+
+Explain what you are visualizing here: Relationship between gender and number of bills that are introduced into congress and get action
+
+Put your figure here:
+
+```{r exercise1,echo=FALSE}
+options(repos = list(CRAN="http://cran.rstudio.com/"))
+
+#install ggthemes
+install.packages("ggthemes")
+library(ggthemes)
+
+#recode gender data
+cel$female <- recode(cel$female, '0' = 'Male', '1' = 'Female')
+cel <- rename(cel, Gender = female)
+
+#plot
+ggplot(cel, aes(x =all_abc, fill = Gender)) + geom_histogram() + facet_wrap(~Gender) + labs(x = "Number of Bills that became Law", y = "Count", title = "Law vs. Gender", subtitle = "Comparing the number of bills that become law in Congress \nacross gender. Do women introduce bills that are \nmore likely to become law?", caption = "Data source: Center for Effective Lawmaking Data") + theme(legend.position = "right", plot.caption = element_text(face = "italic", hjust = 2))
+
+```
+
+## Exercise 2
+
+Explain what you are visualizing here: Relationship between union members and education status
+
+Put your figure here:
+
+```{r exercise2,echo=FALSE}
+
+#recode variables for union and education status
+cces$union <- recode(cces$union, '1' = 'Yes Union', '2' = 'Prev. Union', '3' = 'No Union')
+
+cces$educ <- recode(cces$educ, '1' = 'No HS', '2' = 'HS', '3' = 'Some College', '4' = '2 yr college', '5' = '4 yr college', '6' = 'Post-grad')
+
+#factor education status for graph
+cces$educ <- factor(cces$educ, levels = c("No HS", "HS", "Some College", "2 yr college", "4 yr college", "Post-grad"))
+
+#plot
+ggplot(cces, aes(x = educ, fill = union)) + geom_bar() + theme_bw() + labs(x = "Education Level", y = "Count", title = "Union Status vs. Education", caption = "Data source: Cooperative Congressional Election Study", fill = "Union Status") + theme(plot.caption = element_text(face = "italic", hjust = -0.1))
+  
+```
+
+## Exercise 3
+
+Explain what you are visualizing here: Relationship between income and years of education. 
+
+Put your figure here:
+
+```{r exercise3,echo=FALSE}
+
+#recode income
+ cces$faminc_new <- recode(cces$faminc_new, '1' = '<50,000', '2' = '<50,000', '3' = '<50,000', '4' = '<50,000', '5' = '<50,000', '6' = '50,000-100,000', '7' = '50,000-100,000', '8' = '50,000-100,000', '9' = '50,000-100,000', '10' = '100,000-200,000', '11' = '100,000-200,000', '12' = '100,000-200,000', '13' = '200,000-500,000', '14' = '200,000-500,000', '15' = '200,000-500,000', '16' = '>500,000')
+ 
+ #factor levels of income 
+ cces$faminc_new <- factor(cces$faminc_new, levels = c("<50,000", "50,000-100,000", "100,000-200,000", "200,000-500,000", ">500,000"))
+ 
+#create new column for years of education
+ cces <- mutate(cces, educyrs = educ)
+ cces$educyrs <- recode(cces$educyrs, 'No HS' = '0', 'HS' = '4', 'Some College' = '5', '2 yr college' = '6', '4 yr college' = '8', 'Post-grad' = '9')
+
+ #plot
+  ggplot(data = cces, aes(x = educyrs, y = faminc_new)) + geom_jitter() + labs(x = "Years of Education", y = "Family Income ($)", title = "Income vs. Years of Education", caption = "Data source: Cooperative Congressional Election Study") + theme(plot.caption = element_text(face = "italic", hjust = 0)) + theme_bw() + geom_text(data = filter(cces, educyrs == 9 & faminc_new == ">500,000"), mapping = aes(label = caseid))
+ 
+```
+
+## Exercise 4
+
+Explain what you are visualizing here: Relationship between people of color and whether they are a democrat or not - is there a significant difference in the number of african american and latino congress members between democrats and republicans?
+
+Put your figure here:
+
+```{r exercise4,echo=FALSE}
+
+#create new column for people of color in congress
+cel <- cel %>% group_by(dem) %>% mutate(POC = afam + latino)
+cel <- cel %>% group_by(dem) %>% mutate(cumsumPOC = cumsum(POC))
+
+#recode democratic status
+cel$dem <- recode(cel$dem, '0' = 'Republican', '1' = 'Democrat')
+
+#plot
+ggplot(data = cel, aes(x = year, y = cumsumPOC, color = dem, group = dem)) + geom_line() + facet_wrap(~dem) + labs(x = "Year", y = "Cumulative sum of POC", title = "Total number of POC vs. Year") + theme_bw() + theme(legend.position = "none")
+```
