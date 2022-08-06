@@ -1,0 +1,108 @@
+---
+title: "Spatial Figures Peer Review"
+output: html_document
+---
+# Michelle Lin
+
+## Problem 1
+
+Create the following figure, using the data included in the R Markdown file.
+
+```{r problem_1_data,include=FALSE}
+options(repos = list(CRAN="http://cran.rstudio.com/"))
+library(tidyverse)
+library(maps)
+
+####make some data for painting the map
+
+my_world_map <- map_data("world")
+
+countries <- unique(my_world_map$region)
+
+set.seed(987)
+some_data_values <- data.frame(
+
+  "region"=countries,
+  
+  "Score"=runif(252,0,100))
+
+```
+
+```{r problem_1,echo=FALSE,message=FALSE}
+
+##library
+library(ggplot2)
+
+##Join data
+map_data <- left_join(my_world_map, some_data_values, by = "region")
+
+#plot
+ggplot() + geom_polygon(data = map_data, aes(x = long, y = lat, group = group, fill = Score)) + scale_fill_distiller(palette = 5)
+```
+
+## Problem 2
+
+Create the following figure, using the data included in the R Markdown file.
+
+
+```{r problem_2_data,include=FALSE}
+
+#####DO NOT MODIFY THIS CHUNK
+set.seed(15)
+Measurement<-rnorm(32,50,1)
+```
+
+
+```{r solution_p2,echo=FALSE,message=FALSE}
+
+##library
+library(ggplot2)
+library(maps)
+
+#make dataframes for Costa Rica, Panama, Nicaragua
+central_america <- filter(my_world_map, region == "Costa Rica" | region == "Panama" | region == "Nicaragua")
+
+#input city data
+my_cities <- maps::world.cities
+
+central_amer_city <- filter(my_cities, country.etc == "Panama" | country.etc == "Costa Rica" | country.etc == "Nicaragua", pop > 40000)
+
+#attach measurement data
+
+central_amer_city <- central_amer_city %>% add_column(Measurement)
+
+#plot
+ggplot(data = central_america, mapping = aes(x = long, y = lat, group = group)) + geom_polygon(colour = "black", fill = "white") + geom_point(data = central_amer_city, aes(x = long, y = lat, group = NULL, color = Measurement), size = 5) + scale_color_distiller(palette = 7)
+```
+
+## Problem 3
+
+Create the following figure, using the data included in the R Markdown file.
+
+Note that the code in the .rmd file will import a set of simple features data for South America. Make sure you install any necessary packages. 
+
+```{r problem_3_data,include=FALSE}
+
+#####INSTALL THESE PACKAGES IF NECESSARY
+library(sf)
+library(rnaturalearth)
+library(rnaturalearthdata)
+library(rgeos)
+
+####DO NOT MODIFY
+s_america<-ne_countries(scale="medium",continent='south america',returnclass="sf")
+
+```
+
+```{r problem3,echo=FALSE}
+
+#library
+library(ggplot2)
+library(maps)
+
+#plot
+ggplot() + geom_sf(data = s_america, aes(fill = pop_est)) + scale_fill_distiller(palette = 10)
+
+```
+
+
