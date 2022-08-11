@@ -1,0 +1,108 @@
+---
+title: "Peer Review Three"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: columns
+    vertical_layout: fill
+runtime: shiny
+---
+
+```{r setup, include=FALSE}
+library(flexdashboard)
+library(tidyverse)
+library(plotly)
+library(shiny)
+
+dat<-read_csv(url("https://www.dropbox.com/s/4ebgnkdhhxo5rac/cel_volden_wiseman%20_coursera.csv?raw=1"))
+
+dat$Party<-recode(dat$dem,`1`="Democrat",`0`="Republican")
+
+```
+
+
+Page 1
+======
+
+### Chart A
+
+
+```{r}
+dat %>% 
+  drop_na() %>% 
+  filter(year>1979) %>% 
+  group_by(year,Party) %>% 
+  summarise(passed=sum(all_pass)) %>%
+  ggplot(., aes(x = year, y = passed, fill = Party)) + geom_area() + scale_fill_manual(values = c("Blue", "Red")) + labs(x = "Year", y = "All Bills Passed", title = "Number of Bills Passed Since 1980") 
+
+```
+
+
+Page 2
+=======
+
+Column {data-width = 600}
+-------------------------
+
+### Chart B
+
+```{r}
+
+  renderPlotly({
+    ggplotly(
+      ggplot(
+        dat%>%
+          drop_na()%>%
+          filter(congress==110), 
+        aes(x = votepct, y = all_pass, label = thomas_name, colour = Party)) 
+      + geom_point() + geom_smooth() + scale_colour_manual(values = c("Blue", "Red")) + labs(x = "Vote Pct.", y = "All Pass", title = "Passage and Vote Pct., 110th Congress")
+      )
+  })
+
+```
+
+Column {data-width = 600}
+-------------------------
+
+### Chart C
+
+```{r}
+renderPlotly({
+  ggplotly(
+    ggplot(
+      dat%>%
+      drop_na()%>%
+      filter(congress==110),
+      aes(x = dwnom1, y = all_pass, colour = Party, label = thomas_name))
+    + geom_point() + geom_smooth(method = "lm") + scale_colour_manual(values = c("Blue", "Red")) + labs(x = "DW Nominate.", y = "All Pass", title = "Passage and Ideology, 110th Congress")
+  )
+})
+```
+
+Page 3
+======
+
+### Chart D {.sidebar}
+----------------------
+```{r}
+selectInput("states", label = "State", choices = sort(dat$st_name), selected = dat$st_name, multiple = TRUE)
+```
+
+###Chart D
+-----------
+
+```{r}
+####hint: this figure uses selectInput with the multiple option set to true and with the options set up so that all states are initially selected.#######HINT: for Chart D, you'll need to set the height of the renderPlot, using the height argument. Try a value of 750.
+
+renderPlot(
+  (ggplot(
+    dat%>%
+      group_by(st_name)%>%
+      filter(congress==110)%>%
+      summarise(passed=sum(all_pass)),
+    aes(x = passed, y = st_name)) + 
+    geom_bar(stat = "identity") + labs(x = "Total Bills Passed Per State", y = "State Name", title = "Total Bills Passed by State Delegations, 110th Congress")
+  ), height = 750
+)
+
+```
+
