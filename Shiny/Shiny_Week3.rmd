@@ -54,7 +54,7 @@ Column {data-width = 600}
           drop_na()%>%
           filter(congress==110), 
         aes(x = votepct, y = all_pass, label = thomas_name, colour = Party)) 
-      + geom_point() + geom_smooth() + scale_colour_manual(values = c("Blue", "Red")) + labs(x = "Vote Pct.", y = "All Pass", title = "Passage and Vote Pct., 110th Congress")
+       + geom_smooth() + geom_point() + scale_colour_manual(values = c("Blue", "Red")) + labs(x = "Vote Pct.", y = "All Pass", title = "Passage and Vote Pct., 110th Congress")
       )
   })
 
